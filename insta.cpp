@@ -6,7 +6,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <sstream>
-#include <limits>
 #include <ctime>
 
 using namespace std;
@@ -597,6 +596,7 @@ private:
 
         cout << "Password: ";
         cin >> password;
+        cin.ignore();   // Clear the buffer
         cout << "Address: ";
         getline(cin, address);
         cout << "Age: ";
@@ -801,12 +801,15 @@ private:
                 string name, cat;
                 double price;
                 int qty;
+                cin.ignore();
                 cout << "Name: ";
                 getline(cin, name);
                 cout << "Price: ";
                 cin >> price;
+                cin.ignore();
                 cout << "Quantity: ";
                 cin >> qty;
+                cin.ignore();
                 cout << "Category: ";
                 getline(cin, cat);
 
