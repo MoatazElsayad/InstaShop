@@ -161,10 +161,14 @@ public:
 // Managing the data using File I/O
 class FileManager {
 public:
+    // Save user's information in users.txt
     bool saveUser(const User &u) {
+        // Open the file users.txt
         ofstream file("users.txt", ios::app);
         if (!file.is_open())
             return false;
+        
+        // Write users information in the file using Comma Separated Values (CSV)
         file << u.getUsername() << "," << u.getPassword() << "," << u.getAddress() << ","
              << 0 << "," << u.getWallet() << "," << u.getTotalSpent() << "," << (u.getIsAdmin() ? 1 : 0) << endl;
 
@@ -172,7 +176,9 @@ public:
         return true;
     }
 
+    // Load user's information forom users.txt
     bool loadUser(const string &username, User &outUser) {
+        // Open the file
         ifstream file("users.txt");
         if (!file.is_open())
             return false;
@@ -182,13 +188,16 @@ public:
             if (line.empty())
                 continue;
 
+            // Read the csv line
             vector<string> parts;
             string cur;
             for (char ch : line) {
+                // if ',', clear the current part
                 if (ch == ',') {
                     parts.push_back(cur);
                     cur.clear();
                 } else {
+                    // else add to the current part
                     cur.push_back(ch);
                 }
             }
@@ -197,13 +206,14 @@ public:
             if (parts.size() < 7)
                 continue;
 
+            // intilize the parts to the current user
             if (parts[0] == username) {
                 string uname = parts[0];
                 string pass = parts[1];
                 string addr = parts[2];
-                int age = stoi(parts[3]);
-                double wallet = stod(parts[4]);
-                double totalSpent = stod(parts[5]);
+                int age = stoi(parts[3]);               // String to int
+                double wallet = stod(parts[4]);         // string to double
+                double totalSpent = stod(parts[5]);     // string to double
                 bool isAdmin = (parts[6] == "1");
 
                 User u(uname, pass, addr, age, wallet, isAdmin);
@@ -219,9 +229,14 @@ public:
         return false;
     }
 
+    // Update user's information
     bool updateUser(const User &u) {
+        // Open the file
         ifstream in("users.txt");
-        if (!in.is_open()) return false;
+        if (!in.is_open()) 
+            return false;
+
+        // read the lines
         vector<string> lines;
         string line;
         while (getline(in, line)) {
@@ -229,8 +244,10 @@ public:
         }
         in.close();
 
+        // Create a temporary file and save the updated data
         ofstream out("users_tmp.txt");
-        if (!out.is_open()) return false;
+        if (!out.is_open())
+            return false;
         for (string &ln : lines) {
             if (ln.empty()) continue;
             vector<string> parts;
@@ -259,11 +276,12 @@ public:
         }
         out.close();
 
-        remove("users.txt");
-        rename("users_tmp.txt", "users.txt");
+        remove("users.txt");                    // Remove the old users.txt
+        rename("users_tmp.txt", "users.txt");   // Rename users_tmp.txt with users.txt
         return true;
     }
 
+    // Save the products added or edited by the admin in products.txt
     bool saveProducts(const vector<Product> &products) {
         ofstream file("products.txt");
         if (!file.is_open()) return false;
@@ -274,15 +292,20 @@ public:
         return true;
     }
 
+    // Load the products from products.txt
     bool loadProducts(vector<Product> &outProducts) {
+        // Open the file
         ifstream file("products.txt");
         if (!file.is_open())
             return false;
         outProducts.clear();
+
+        // Read the lines
         string line;
         while (getline(file, line)) {
             if (line.empty())
                 continue;
+            // Get the data from the csv line
             vector<string> parts;
             string cur;
             for (char ch : line) {
@@ -294,10 +317,13 @@ public:
                 }
             }
             parts.push_back(cur);
-            if (parts.size() < 4) continue;
+            if (parts.size() < 4) 
+                continue;
+            
+            // Intialize the data to the Product class
             string name = parts[0];
-            double price = stod(parts[1]);
-            int qty = stoi(parts[2]);
+            double price = stod(parts[1]);  // string to double
+            int qty = stoi(parts[2]);       // string to int
             string cat = parts[3];
             outProducts.push_back(Product(name, price, qty, cat));
         }
@@ -552,11 +578,13 @@ private:
         }
     }
 
+    // Registeration
     void registerUser() {
         string username, password, address;
         int age, type;
         double wallet = 0;
 
+        // Get the data from the user
         cout << "\n===== REGISTER =====" << endl;
         cout << "Username: ";
         cin >> username;
@@ -579,20 +607,23 @@ private:
 
         bool isAdmin = (type == 2);
 
+        // Intilize the wallet if customer
         if (!isAdmin) {
             cout << "Initial wallet: ";
             cin >> wallet;
         }
 
+        // Adding the user data to the class
         User newUser(username, password, address, age, wallet, isAdmin);
 
-        if (fm.saveUser(newUser)) {
+        // Save the user in the file.
+        if (fm.saveUser(newUser)) 
             cout << "Registered!" << endl;
-        } else {
+        else 
             cout << "Failed to save user." << endl;
-        }
     }
 
+    // Loging in
     void loginUser() {
         string username, password;
         cout << "Username: ";
@@ -606,6 +637,7 @@ private:
         cout << "Password: ";
         cin >> password;
 
+        // Match the passwords.
         if (currentUser.getPassword() == password) {
             cout << "Login success!" << endl;
         } else {
@@ -614,8 +646,10 @@ private:
         }
     }
 
+    // Customer Panel (if the user is a customer)
     void customerShop() {
         while (true) {
+            // Customer Main Menu
             cout << "\n===== SHOP =====" << endl;
             cout << "1. Browse" << endl;
             cout << "2. View Cart" << endl;
@@ -629,7 +663,7 @@ private:
             cin >> ch;
 
             switch (ch) {
-            // Browse
+            // Browse the products
             case 1: {
                 cout << "\n===== PRODUCTS =====" << endl;
                 for (int i = 0; i < products.size(); i++) {
@@ -660,16 +694,19 @@ private:
 
             // Checkout
             case 3: {
+                // Check if the cart is empty or not.
                 if (cart.isEmpty()) {
                     cout << "Cart empty!" << endl;
                     break;
                 }
 
+                // display the cart
                 cart.display();
                 cout << "Paying via wallet..." << endl;
                 Payment p(currentUser.getWallet());
                 p.setAmountToPay(cart.getTotal());
                 
+                // Post-Payment operations
                 if (p.buyFromCart()) {
                     currentUser.setWallet(p.getWalletBalance());
                     
@@ -685,6 +722,7 @@ private:
                         }
                     }
                     
+                    // Update values and clear the cart
                     currentUser.addSpent(cart.getTotal());
                     fm.updateUser(currentUser);
                     fm.saveProducts(products);
@@ -696,6 +734,7 @@ private:
                 break;
             }
 
+            // Add Wallet
             case 4: {
                 double amt;
                 cout << "Amount: ";
@@ -710,15 +749,17 @@ private:
                 break;
             }
 
+            // Display user's information
             case 5: {
                 currentUser.displayInfo();
                 break;
             }
 
+            // Log Out
             case 6: {
                 cout << "Logged Out" << endl;
-                currentUser = User();
-                cart.clear();
+                currentUser = User();       // clear the session
+                cart.clear();               // clear the cart
                 return;
             }
 
@@ -728,8 +769,10 @@ private:
         }
     }
 
+    // Admin Panel (if the user is an Admin)
     void adminPanel() {
         while (true) {
+            // Admin Main Menu
             cout << "\n===== ADMIN =====" << endl;
             cout << "1. View Products" << endl;
             cout << "2. Add Product" << endl;
@@ -743,6 +786,7 @@ private:
             cin >> ch;
 
             switch (ch) {
+            // Display current Products
             case 1: {
                 cout << "\n===== ALL PRODUCTS =====" << endl;
                 for (int i = 0; i < (int)products.size(); i++) {
@@ -751,8 +795,9 @@ private:
                 }
                 break;
             }
+            // Add Products
             case 2: {
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                // Get products data
                 string name, cat;
                 double price;
                 int qty;
@@ -762,24 +807,28 @@ private:
                 cin >> price;
                 cout << "Quantity: ";
                 cin >> qty;
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 cout << "Category: ";
                 getline(cin, cat);
 
+                // Add the products to the class
                 products.push_back(Product(name, price, qty, cat));
+
+                // Then save them in the file.
                 fm.saveProducts(products);
                 cout << "Added!" << endl;
                 break;
             }
+            // Edit Price
             case 3: {
                 int num;
                 double newPrice;
 
+                // Edit a product price
                 cout << "Product number: ";
                 cin >> num;
                 cout << "New price: ";
                 cin >> newPrice;
-                if (num > 0 && num <= (int)products.size()) {
+                if (num > 0 && num <= products.size()) {
                     products[num - 1].setPrice(newPrice);
                     fm.saveProducts(products);
                     cout << "Updated!" << endl;
@@ -788,11 +837,12 @@ private:
                 }
                 break;
             }
+            // Remove Products
             case 4: {
                 int num;
                 cout << "Product number: ";
                 cin >> num;
-                if (num > 0 && num <= (int)products.size()) {
+                if (num > 0 && num <= products.size()) {
                     products.erase(products.begin() + num - 1);
                     fm.saveProducts(products);
                     cout << "Removed!" << endl;
@@ -801,13 +851,15 @@ private:
                 }
                 break;
             }
+            // Display Admin's information
             case 5: {
                 currentUser.displayInfo();
                 break;
             }
+            // Log out
             case 6: {
                 cout << "Logged Out!" << endl;
-                currentUser = User();
+                currentUser = User();   // clear the session
                 return;
             }
             default:
@@ -821,8 +873,10 @@ public:
         initProducts();
     }
 
+    // RUN the Program
     void run() {
         while (true) {
+            // Main Menu
             cout << "\n========== SUPERMARKET ==========" << endl;
             cout << "1. Register" << endl;
             cout << "2. Login" << endl;
@@ -832,6 +886,7 @@ public:
             int ch;
             cin >> ch;
 
+            // Register -> Login -> (Admin or Customer) -> Exit
             if (ch == 1) {
                 registerUser();
             } else if (ch == 2) {
