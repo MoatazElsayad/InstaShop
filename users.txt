@@ -1,5 +1,8 @@
 moataz,123,Giza,0,0,0,0
+,,,0,0,0,0
 moa,123,Giza,0,100,700,0
 Omar,1234,AUC Dorms,0,1005,95,0
 Daly,123,CasaBlanca,0,0,0,1
-
+amoon,amoon@2025,auc GATE 4,20,700,300,0
+Abdo,123,5th Settelment,19,8850,1150,0
+ABD,123,AUC,70,0,0,1
