@@ -1,5 +1,5 @@
 moataz,123,Giza,0,0,0,0
-,,,0,0,0,0
 moa,123,Giza,0,100,700,0
 Omar,1234,AUC Dorms,0,1005,95,0
 Daly,123,CasaBlanca,0,0,0,1
+
