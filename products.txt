@@ -1,5 +1,7 @@
-Milk 1L|20|5|Dairy
-Bread|5|47|Bakery
-Eggs 6pc|30|30|Dairy
-Rice 1kg|35|28|Grocery
-Panadol|20|100|Pharmacy
+Milk 1L|20|48|Dairy
+Bread|5|100|Bakery
+Eggs 6pc|30|60|Dairy
+Rice 1kg|40|30|Grocery
+Water 1.5L|10|140|Drinks
+Pasta|20|30|Grocery
+Meat 1kg|200|50|Butchery
