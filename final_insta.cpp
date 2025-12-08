@@ -200,6 +200,7 @@ public:
     UserData data;
     Wallet wallet;
 
+    // Constructors
     User() : wallet(0.0) {
         data.username = "";
         data.password = "";
@@ -223,15 +224,18 @@ public:
 
     // Display User's information
     void displayInfo() const {
-        cout << "\n===== USER INFO =====" << endl;
-        cout << "Username: " << data.username << endl;
-        cout << "Address: " << data.address << endl;
-        cout << "Type: " << (data.isAdmin ? "ADMIN" : "CUSTOMER") << endl;
+        cout << "\n========================================" << endl;
+        cout << "            👤 USER PROFILE              " << endl;
+        cout << "========================================" << endl;
+        cout << "Username      : " << data.username << endl;
+        cout << "Address       : " << data.address << endl;
+        cout << "Account Type  : " << (data.isAdmin ? "ADMIN" : "CUSTOMER") << endl;
         if (!data.isAdmin) {
+            cout << "----------------------------------------" << endl;
             wallet.displayBalance();
             cout << "Special Client: " << (isSpecialClient() ? "YES" : "NO") << endl;
         }
-        cout << "===================" << endl;
+        cout << "========================================\n" << endl;
     }
 };
 
@@ -274,11 +278,10 @@ public:
 
     // Search for the user
     User* findUser(string username) {
-        for (int i = 0; i < size; i++) {
-            if (users[i].data.username == username) {
+        for (int i = 0; i < size; i++)
+            if (users[i].data.username == username)
                 return &users[i];
-            }
-        }
+
         return nullptr;
     }
 
@@ -462,23 +465,61 @@ public:
         total -= discountApplied;
         return total;
     }
+    
+    // Calculate total with user discount based on spending
+    double calculateTotalWithDiscount(double totalSpent) {
+        double subtotal = 0.0;
+        for (int i = 0; i < size; i++) {
+            subtotal += items[i].price * items[i].quantity;
+        }
+        
+        // Apply discount based on total spent
+        double discountPercentage = 0.0;
+        if (totalSpent >= 1000)
+            discountPercentage = 0.10;
+        
+        double discountAmount = subtotal * discountPercentage;
+        discountApplied = discountAmount;
+        
+        double total = subtotal - discountAmount;
+        return total;
+    }
 
     // Display the cart
-    void display() {
+    void display(double totalSpent = 0.0) {
         if (isEmpty()) {
-            cout << "Cart is empty.\n";
+            cout << "\n🛒 Your cart is empty.\n";
             return;
         }
 
-        cout << "----- CART -----\n";
+        cout << "\n========================================" << endl;
+        cout << "           🛒 YOUR CART                 " << endl;
+        cout << "========================================" << endl;
+        
+        double subtotal = 0.0;
         for (int i = 0; i < size; i++) {
-            cout << items[i].name
-                 << " | Price: " << items[i].price
-                 << " | Qty: " << items[i].quantity << "\n";
+            double itemTotal = items[i].price * items[i].quantity;
+            cout << (i + 1) << ". " << items[i].name
+                 << "\n   Price: " << fixed << setprecision(2) << items[i].price << " EGP"
+                 << " | Qty: " << items[i].quantity
+                 << " | Subtotal: " << itemTotal << " EGP\n";
+            subtotal += itemTotal;
         }
-        cout << "Discount: " << discountApplied << "\n";
-        cout << "Total: " << calculateTotal() << " EGP\n";
-        cout << "----------------\n";
+        
+        cout << "----------------------------------------" << endl;
+        cout << "Subtotal: " << fixed << setprecision(2) << subtotal << " EGP" << endl;
+        
+        // Show discount if applicable
+        if (totalSpent >= 1000) {
+            double discountPercentage = 10.0;
+
+            double discountAmount = subtotal * (discountPercentage / 100.0);
+            cout << "Loyalty Discount (" << discountPercentage 
+                 << "%): -" << fixed << setprecision(2) << discountAmount << " EGP" << endl;
+            cout << "TOTAL: " << fixed << setprecision(2) << (subtotal - discountAmount) << " EGP" << endl;
+        }
+        
+        cout << "========================================\n" << endl;
     }
 };
 
@@ -510,13 +551,16 @@ private:
         int age, type;
         double wallet = 0;
 
-        cout << "\n===== REGISTER =====" << endl;
+        cout << "\n========================================" << endl;
+        cout << "          📝 USER REGISTRATION          " << endl;
+        cout << "========================================" << endl;
         cout << "Username: ";
         cin >> username;
 
         // Check if user exists
         if (allUsers.userExists(username)) {
-            cout << "User already exists!" << endl;
+            cout << "\n❌ Error: Username already exists!" << endl;
+            cout << "Please try a different username.\n" << endl;
             return;
         }
 
@@ -528,34 +572,43 @@ private:
         cout << "Age: ";
         cin >> age;
 
-        cout << "User Type (1=Customer, 2=Admin): ";
+        cout << "\nSelect Account Type:" << endl;
+        cout << "  1 - Customer" << endl;
+        cout << "  2 - Admin" << endl;
+        cout << "Choice: ";
         cin >> type;
 
         bool isAdmin = (type == 2);
 
         // Ask for the wallet amount if the user is a customer
         if (!isAdmin) {
-            cout << "Initial wallet: ";
+            cout << "Initial Wallet Balance (EGP): ";
             cin >> wallet;
         }
 
         User newUser(username, password, address, age, wallet, isAdmin);
         allUsers.addUser(newUser);
         allUsers.saveToFile();
-        cout << "Registered!" << endl;
+        
+        cout << "\n✅ Registration successful!" << endl;
+        cout << "Welcome, " << username << "! You can now login.\n" << endl;
     }
 
     // Login user function
     void loginUser() {
         string username, password;
-        cout << "\n===== LOGIN =====" << endl;
+        
+        cout << "\n========================================" << endl;
+        cout << "            🔐 USER LOGIN               " << endl;
+        cout << "========================================" << endl;
         cout << "Username: ";
         cin >> username;
 
         // Search for the user in the file
         currentUser = allUsers.findUser(username);
         if (currentUser == nullptr) {
-            cout << "User NOT Found!" << endl;
+            cout << "\n❌ Error: User not found!" << endl;
+            cout << "Please check your username or register first.\n" << endl;
             return;
         }
 
@@ -564,109 +617,253 @@ private:
 
         // Match the passwords
         if (currentUser->data.password == password) {
-            cout << "Login success!" << endl;
+            cout << "\n✅ Login successful!" << endl;
+            cout << "Welcome back, " << username << "!\n" << endl;
         } else {
-            cout << "Wrong password!" << endl;
+            cout << "\n❌ Error: Incorrect password!" << endl;
+            cout << "Please try again.\n" << endl;
             currentUser = nullptr;
         }
     }
 
     // Customer Menu //
     void customerShop() {
-        while (true) {
-            cout << "\n===== SHOP =====" << endl;
-            cout << "1. Browse" << endl;
+        int ch;
+        do {
+            cout << "\n========================================" << endl;
+            cout << "          🛍️  CUSTOMER MENU             " << endl;
+            cout << "========================================" << endl;
+            cout << "1. Browse Products" << endl;
             cout << "2. View Cart" << endl;
             cout << "3. Checkout" << endl;
-            cout << "4. Add Wallet" << endl;
-            cout << "5. Profile" << endl;
+            cout << "4. Add Funds to Wallet" << endl;
+            cout << "5. View Profile" << endl;
             cout << "6. Logout" << endl;
-            cout << "Choice: ";
-
-            int ch;
+            cout << "========================================" << endl;
+            cout << "Enter your choice (1-6): ";
             cin >> ch;
 
             switch (ch) {
-            // Browse Products
+            // Browse Products by Category
             case 1: {
-                cout << "\n===== PRODUCTS =====" << endl;
-                allProducts.displayAll();
-
-                cout << "Add product (number, qty): ";
-                int num, qty;
-                cin >> num >> qty;
-
-                // Add a product to the cart
-                if (num > 0 && num <= allProducts.size) {
-                    Product* p = allProducts.getProduct(num - 1);
-                    if (p != nullptr && qty <= p->data.quantity) {
-                        cart.addProduct(*p, qty);
-                        cout << "Added to cart!" << endl;
-                    } else {
-                        cout << "Not enough stock available." << endl;
-                    }
-                } else {
-                    cout << "Invalid product number." << endl;
+                if (allProducts.size == 0) {
+                    cout << "\nNo products available at the moment.\n" << endl;
+                    break;
                 }
+
+                // Get unique categories
+                string* categories = new string[allProducts.size];
+                int categoryCount = 0;
+                
+                for (int i = 0; i < allProducts.size; i++) {
+                    bool found = false;
+                    for (int j = 0; j < categoryCount; j++) {
+                        if (categories[j] == allProducts.products[i].data.category) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        categories[categoryCount++] = allProducts.products[i].data.category;
+                    }
+                }
+
+                // Display categories
+                cout << "\n========================================" << endl;
+                cout << "          📂 PRODUCT CATEGORIES         " << endl;
+                cout << "========================================" << endl;
+                for (int i = 0; i < categoryCount; i++) {
+                    cout << (i + 1) << ". " << categories[i] << endl;
+                }
+                cout << "0. Go Back" << endl;
+                cout << "========================================" << endl;
+                cout << "Select category: ";
+                
+                int catChoice;
+                cin >> catChoice;
+                
+                if (catChoice == 0) {
+                    delete[] categories;
+                    break;
+                }
+                
+                if (catChoice < 1 || catChoice > categoryCount) {
+                    cout << "\n❌ Invalid category!\n" << endl;
+                    delete[] categories;
+                    break;
+                }
+                
+                string selectedCategory = categories[catChoice - 1];
+                delete[] categories;
+                
+                // Display products in selected category
+                cout << "\n========================================" << endl;
+                cout << "       📦 " << selectedCategory << " PRODUCTS" << endl;
+                cout << "========================================" << endl;
+                
+                int* productIndices = new int[allProducts.size];
+                int productCount = 0;
+                
+                for (int i = 0; i < allProducts.size; i++) {
+                    if (allProducts.products[i].data.category == selectedCategory) {
+                        productIndices[productCount] = i;
+                        cout << (productCount + 1) << ". ";
+                        cout << allProducts.products[i].data.name
+                             << " - Price: " << fixed << setprecision(2) 
+                             << allProducts.products[i].data.price << " EGP"
+                             << " | Stock: " << allProducts.products[i].data.quantity << endl;
+                        productCount++;
+                    }
+                }
+                
+                if (productCount == 0) {
+                    cout << "No products in this category." << endl;
+                    delete[] productIndices;
+                    break;
+                }
+                
+                cout << "========================================" << endl;
+                cout << "\nEnter product number (0 to cancel): ";
+                int num;
+                cin >> num;
+                
+                if (num == 0) {
+                    cout << "Cancelled.\n";
+                    delete[] productIndices;
+                    break;
+                }
+                
+                if (num < 1 || num > productCount) {
+                    cout << "\n❌ Invalid product number!\n" << endl;
+                    delete[] productIndices;
+                    break;
+                }
+                
+                cout << "Enter quantity: ";
+                int qty;
+                cin >> qty;
+                
+                int actualIndex = productIndices[num - 1];
+                Product* p = allProducts.getProduct(actualIndex);
+                
+                if (p != nullptr && qty > 0 && qty <= p->data.quantity) {
+                    cart.addProduct(*p, qty);
+                    p->reduceQuantity(qty);                     // Reduce quantity immediately when added to cart
+                    productFM.saveProducts(allProducts);        // Save updated quantities
+                    cout << "\n✅ " << qty << "x " << p->data.name << " added to cart!\n" << endl;
+                } else if (qty <= 0) {
+                    cout << "\n❌ Invalid quantity!\n" << endl;
+                } else {
+                    cout << "\n❌ Not enough stock! Available: " << p->data.quantity << "\n" << endl;
+                }
+                
+                delete[] productIndices;
                 break;
             }
 
             // View cart
             case 2: {
-                cart.display();
+                cart.display(currentUser->wallet.data.totalSpent);
                 break;
             }
 
             // Checkout the cart
             case 3: {
                 if (cart.isEmpty()) {
-                    cout << "Cart empty!" << endl;
+                    cout << "\n⚠️  Your cart is empty!" << endl;
+                    cout << "Please add some products first.\n" << endl;
                     break;
                 }
 
-                cart.display();
-                double total = cart.calculateTotal();
+                cart.display(currentUser->wallet.data.totalSpent);
+                double total = cart.calculateTotalWithDiscount(currentUser->wallet.data.totalSpent);
                 
-                cout << "Paying via wallet..." << endl;
+                // Show loyalty status
+                if (currentUser->wallet.data.totalSpent >= 1000) {
+                    cout << "🎉 You have 10% loyalty discount applied!\n" << endl;
+                }
+                else {
+                    double remaining = 1000 - currentUser->wallet.data.totalSpent;
+                    cout << "💡 Spend " << fixed << setprecision(2) << remaining << endl;
+                }
+                
+                cout << "Do you want to proceed with payment? (y/n): ";
+                char confirm;
+                cin >> confirm;
+                
+                if (confirm != 'y' && confirm != 'Y') {
+                    cout << "Checkout cancelled.\n" << endl;
+                    // Restore quantities back to inventory 
+                    for (int i = 0; i < cart.size; i++) 
+                        for (int j = 0; j < allProducts.size; j++) 
+                            if (allProducts.products[j].data.name == cart.items[i].name) 
+                                allProducts.products[j].data.quantity += cart.items[i].quantity;
+
+                    productFM.saveProducts(allProducts);
+                    cart.clear();
+                    break;
+                }
+                
+                cout << "\n💳 Processing payment via wallet..." << endl;
                 
                 // If the payment is successful and there is enought balance
                 if (currentUser->wallet.EnoughBalance(total)) {
                     if (currentUser->wallet.buyFromCart(total)) {
-                        // Update product quantities
-                        for (int i = 0; i < cart.size; i++) {
-                            for (int j = 0; j < allProducts.size; j++) {
-                                if (allProducts.products[j].data.name == cart.items[i].name) {
-                                    allProducts.products[j].reduceQuantity(cart.items[i].quantity);
-                                }
-                            }
-                        }
-
-                        // Save the changes in the file.
+                        // Just need to update total spent and save
                         allUsers.saveToFile();
                         productFM.saveProducts(allProducts);
                         cart.clear();
-                        cout << "Payment successful!" << endl;
-                        cout << "Order completed!" << endl;
+                        
+                        cout << "\n✅ Payment successful!" << endl;
+                        cout << "🎉 Order completed! Thank you for shopping with us!" << endl;
+                        cout << "New Balance: " << fixed << setprecision(2) 
+                             << currentUser->wallet.data.walletBalance << " EGP" << endl;
+                        cout << "Total Spent: " << fixed << setprecision(2) 
+                             << currentUser->wallet.data.totalSpent << " EGP\n" << endl;
                     } else {
-                        cout << "Payment failed!" << endl;
+                        cout << "\n❌ Payment failed! Please try again.\n" << endl;
                     }
-                } else {
-                    cout << "Not enough balance in wallet!" << endl;
+                } 
+                else {
+                    cout << "\n❌ Insufficient balance!" << endl;
+                    cout << "Your Balance: " << fixed << setprecision(2) 
+                         << currentUser->wallet.data.walletBalance << " EGP" << endl;
+                    cout << "Required: " << fixed << setprecision(2) << total << " EGP" << endl;
+                    cout << "Please add funds to your wallet.\n" << endl;
+
+                    // Restore quantities back to inventory when payment fails
+                    for (int i = 0; i < cart.size; i++) 
+                        for (int j = 0; j < allProducts.size; j++) 
+                            if (allProducts.products[j].data.name == cart.items[i].name) 
+                                allProducts.products[j].data.quantity += cart.items[i].quantity;
+
+                    productFM.saveProducts(allProducts);
+                    cart.clear();
                 }
                 break;
             }
 
             // Add amount to the wallet
             case 4: {
+                cout << "\n========================================" << endl;
+                cout << "         💰 ADD FUNDS TO WALLET         " << endl;
+                cout << "========================================" << endl;
+                cout << "Current Balance: " << fixed << setprecision(2) 
+                     << currentUser->wallet.data.walletBalance << " EGP" << endl;
+                cout << "----------------------------------------" << endl;
+                cout << "Enter amount to add (EGP): ";
                 double amt;
-                cout << "Amount: ";
                 cin >> amt;
+                
                 if (amt > 0) {
                     currentUser->wallet.addFunds(amt);
                     allUsers.saveToFile();
-                    cout << "Wallet Updated!" << endl;
-                } else {
-                    cout << "Invalid amount." << endl;
+                    cout << "\n✅ Funds added successfully!" << endl;
+                    cout << "New Balance: " << fixed << setprecision(2) 
+                         << currentUser->wallet.data.walletBalance << " EGP\n" << endl;
+                } 
+                else {
+                    cout << "\n❌ Invalid amount! Please enter a positive value.\n" << endl;
                 }
                 break;
             }
@@ -679,42 +876,99 @@ private:
 
             // Logout
             case 6: {
-                cout << "Logged Out" << endl;
+                cout << "\n👋 Logging out..." << endl;
+                
+                // Restore quantities if there are items in cart
+                if (!cart.isEmpty()) {
+                    cout << "Restoring cart items to inventory...\n" << endl;
+                    for (int i = 0; i < cart.size; i++) 
+                        for (int j = 0; j < allProducts.size; j++) 
+                            if (allProducts.products[j].data.name == cart.items[i].name) 
+                                allProducts.products[j].data.quantity += cart.items[i].quantity;
+
+                    productFM.saveProducts(allProducts);
+                }
+                
+                cout << "Thank you for visiting! See you soon.\n" << endl;
                 currentUser = nullptr;
                 cart.clear();
                 return;
             }
 
             default:
-                cout << "Invalid Choice!" << endl;
+                cout << "\n❌ Invalid choice! Please enter a number between 1 and 6.\n" << endl;
             }
-        }
+        } while (ch != 6);
     }
 
     // Admin Menu // 
     void adminPanel() {
-        while (true) {
-            cout << "\n===== ADMIN =====" << endl;
-            cout << "1. View Products" << endl;
-            cout << "2. Add Product" << endl;
-            cout << "3. Edit Price" << endl;
+        int ch;
+        do {
+            cout << "\n========================================" << endl;
+            cout << "          🔧 ADMIN PANEL                " << endl;
+            cout << "========================================" << endl;
+            cout << "1. View All Products" << endl;
+            cout << "2. Add New Product" << endl;
+            cout << "3. Edit Product Price" << endl;
             cout << "4. Remove Product" << endl;
-            cout << "5. Profile" << endl;
+            cout << "5. View Profile" << endl;
             cout << "6. Logout" << endl;
-            cout << "Choice: ";
-
-            int ch;
+            cout << "========================================" << endl;
+            cout << "Enter your choice (1-6): ";
             cin >> ch;
 
             switch (ch) {
-            // view current products
+            // View products organized by category
             case 1: {
-                cout << "\n===== ALL PRODUCTS =====" << endl;
+                cout << "\n========================================" << endl;
+                cout << "          📋 ALL PRODUCTS               " << endl;
+                cout << "========================================" << endl;
                 if (allProducts.size == 0) {
-                    cout << "No products available." << endl;
-                } else {
-                    allProducts.displayAll();
+                    cout << "No products in inventory." << endl;
+                } 
+                else {
+                    // Get unique categories
+                    string* categories = new string[allProducts.size];
+                    int categoryCount = 0;
+                    
+                    for (int i = 0; i < allProducts.size; i++) {
+                        bool found = false;
+                        for (int j = 0; j < categoryCount; j++) {
+                            if (categories[j] == allProducts.products[i].data.category) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            categories[categoryCount++] = allProducts.products[i].data.category;
+                        }
+                    }
+                    
+                    // Display products by category
+                    int totalProducts = 0;
+                    for (int i = 0; i < categoryCount; i++) {
+                        cout << "\n📂 " << categories[i] << ":" << endl;
+                        cout << "----------------------------------------" << endl;
+                        
+                        for (int j = 0; j < allProducts.size; j++) {
+                            if (allProducts.products[j].data.category == categories[i]) {
+                                cout << " - " << allProducts.products[j].data.name
+                                     << " - Price: " << fixed << setprecision(2) 
+                                     << allProducts.products[j].data.price << " EGP"
+                                     << " | Stock: " << allProducts.products[j].data.quantity << endl;
+                                totalProducts++;
+                            }
+                        }
+                    }
+                    
+                    cout << "\n----------------------------------------" << endl;
+                    cout << "Total Products:   " << totalProducts << endl;
+                    cout << "Total Categories: " << categoryCount << endl;
+                    
+                    delete[] categories;
                 }
+                cout << "========================================\n" << endl;
                 break;
             }
 
@@ -723,54 +977,189 @@ private:
                 string name, cat;
                 double price;
                 int qty;
+                
+                cout << "\n========================================" << endl;
+                cout << "          ➕ ADD NEW PRODUCT            " << endl;
+                cout << "========================================" << endl;
+                
+                // Show existing categories
+                if (allProducts.size > 0) {
+                    string* categories = new string[allProducts.size];
+                    int categoryCount = 0;
+                    
+                    for (int i = 0; i < allProducts.size; i++) {
+                        bool found = false;
+                        for (int j = 0; j < categoryCount; j++) {
+                            if (categories[j] == allProducts.products[i].data.category) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            categories[categoryCount++] = allProducts.products[i].data.category;
+                        }
+                    }
+                    
+                    cout << "Existing Categories:" << endl;
+                    for (int i = 0; i < categoryCount; i++) 
+                        cout << "  • " << categories[i] << endl;
+
+                    cout << "----------------------------------------" << endl;
+                    
+                    delete[] categories;
+                }
+                
                 cin.ignore();
-                cout << "Name: ";
+                cout << "Product Name: ";
                 getline(cin, name);
-                cout << "Price: ";
+                cout << "Price (EGP): ";
                 cin >> price;
                 cout << "Quantity: ";
                 cin >> qty;
                 cin.ignore();
-                cout << "Category: ";
+                cout << "Category (use existing or create new): ";
                 getline(cin, cat);
 
-                allProducts.addProduct(Product(name, price, qty, cat));
-                productFM.saveProducts(allProducts);
-                cout << "Product Added!" << endl;
+                if (price > 0 && qty >= 0) {
+                    allProducts.addProduct(Product(name, price, qty, cat));
+                    productFM.saveProducts(allProducts);
+                    cout << "\n✅ Product added successfully!" << endl;
+                    cout << name << " has been added to " << cat << " category.\n" << endl;
+                } else {
+                    cout << "\n❌ Invalid input! Price must be positive.\n" << endl;
+                }
                 break;
             }
 
             // Edit the price
             case 3: {
+                if (allProducts.size == 0) {
+                    cout << "\n⚠️  No products available to edit.\n" << endl;
+                    break;
+                }
+                
+                cout << "\n========================================" << endl;
+                cout << "          ✏️  EDIT PRODUCT PRICE        " << endl;
+                cout << "========================================" << endl;
+                allProducts.displayAll();
+                cout << "========================================" << endl;
+                
                 int num;
                 double newPrice;
-                cout << "Product number: ";
+                cout << "\nEnter product number (0 to cancel): ";
                 cin >> num;
                 
+                if (num == 0) {
+                    cout << "Cancelled.\n";
+                    break;
+                }
+                
                 if (num > 0 && num <= allProducts.size) {
-                    cout << "New price: ";
+                    cout << "Current Price: " << allProducts.products[num - 1].data.price << " EGP" << endl;
+                    cout << "Enter new price (EGP): ";
                     cin >> newPrice;
-                    allProducts.products[num - 1].data.price = newPrice;
-                    productFM.saveProducts(allProducts);
-                    cout << "Price Updated!" << endl;
-                } else {
-                    cout << "Invalid Product!" << endl;
+                    
+                    if (newPrice > 0) {
+                        allProducts.products[num - 1].data.price = newPrice;
+                        productFM.saveProducts(allProducts);
+                        cout << "\n✅ Price updated successfully!" << endl;
+                        cout << allProducts.products[num - 1].data.name 
+                             << " is now " << fixed << setprecision(2) << newPrice << " EGP\n" << endl;
+                    } 
+                    else {
+                        cout << "\n❌ Invalid price! Must be positive.\n" << endl;
+                    }
+                } 
+                else {
+                    cout << "\n❌ Invalid product number!\n" << endl;
                 }
                 break;
             }
 
             // Remove Products
             case 4: {
-                int num;
-                cout << "Product number: ";
-                cin >> num;
-                if (num > 0 && num <= allProducts.size) {
-                    allProducts.removeProduct(num - 1);
-                    productFM.saveProducts(allProducts);
-                    cout << "Product Removed!" << endl;
-                } else {
-                    cout << "Invalid Product!" << endl;
+                if (allProducts.size == 0) {
+                    cout << "\n⚠️  No products available to remove.\n" << endl;
+                    break;
                 }
+                
+                cout << "\n========================================" << endl;
+                cout << "          🗑️  REMOVE PRODUCT            " << endl;
+                cout << "========================================" << endl;
+                
+                // Display products with index mapping
+                int displayIndex = 1;
+                int* indexMap = new int[allProducts.size];
+                
+                // Get unique categories
+                string* categories = new string[allProducts.size];
+                int categoryCount = 0;
+                
+                for (int i = 0; i < allProducts.size; i++) {
+                    bool found = false;
+                    for (int j = 0; j < categoryCount; j++) {
+                        if (categories[j] == allProducts.products[i].data.category) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        categories[categoryCount++] = allProducts.products[i].data.category;
+                    }
+                }
+                
+                // Display products by category with numbering
+                for (int i = 0; i < categoryCount; i++) {
+                    cout << "\n📂 " << categories[i] << ":" << endl;
+                    cout << "----------------------------------------" << endl;
+                    
+                    for (int j = 0; j < allProducts.size; j++) {
+                        if (allProducts.products[j].data.category == categories[i]) {
+                            cout << displayIndex << ". " << allProducts.products[j].data.name
+                                 << " - Price: " << fixed << setprecision(2) 
+                                 << allProducts.products[j].data.price << " EGP"
+                                 << " | Stock: " << allProducts.products[j].data.quantity << endl;
+                            indexMap[displayIndex - 1] = j;
+                            displayIndex++;
+                        }
+                    }
+                }
+                
+                delete[] categories;
+                
+                cout << "========================================" << endl;
+                
+                int num;
+                cout << "\nEnter product number to remove (0 to cancel): ";
+                cin >> num;
+                
+                if (num == 0) {
+                    cout << "Cancelled.\n";
+                    delete[] indexMap;
+                    break;
+                }
+                
+                if (num > 0 && num < displayIndex) {
+                    int actualIndex = indexMap[num - 1];
+                    string productName = allProducts.products[actualIndex].data.name;
+                    
+                    cout << "Are you sure you want to remove '" << productName << "'? (y/n): ";
+                    char confirm;
+                    cin >> confirm;
+                    
+                    if (confirm == 'y' || confirm == 'Y') {
+                        allProducts.removeProduct(actualIndex);
+                        productFM.saveProducts(allProducts);
+                        cout << "\n✅ Product removed successfully!" << endl;
+                        cout << productName << " has been removed from inventory.\n" << endl;
+                    } else {
+                        cout << "Removal cancelled.\n" << endl;
+                    }
+                } else {
+                    cout << "\n❌ Invalid product number!\n" << endl;
+                }
+                
+                delete[] indexMap;
                 break;
             }
 
@@ -782,15 +1171,16 @@ private:
 
             // Log out
             case 6: {
-                cout << "Logged Out!" << endl;
+                cout << "\n👋 Logging out from admin panel..." << endl;
+                cout << "Goodbye, Admin!\n" << endl;
                 currentUser = nullptr;
                 return;
             }
 
             default:
-                cout << "Invalid Choice!" << endl;
+                cout << "\n❌ Invalid choice! Please enter a number between 1 and 6.\n" << endl;
             }
-        }
+        } while (ch != 6);
     }
 
 public:
@@ -801,19 +1191,27 @@ public:
 
     // Code runner
     void run() {
-        while (true) {
-            cout << "\n========== SUPERMARKET ==========" << endl;
-            cout << "1. Register" << endl;
+        int ch;
+        
+        cout << "\n========================================" << endl;
+        cout << "=       WELCOME TO OUR SUPERMARKET     =" << endl;
+        cout << "========================================\n" << endl;
+        
+        do {
+            cout << "========================================" << endl;
+            cout << "            🏪 MAIN MENU                " << endl;
+            cout << "========================================" << endl;
+            cout << "1. Register New Account" << endl;
             cout << "2. Login" << endl;
             cout << "3. Exit" << endl;
-            cout << "Choice: ";
-
-            int ch;
+            cout << "========================================" << endl;
+            cout << "Enter your choice (1-3): ";
             cin >> ch;
 
             if (ch == 1) {
                 registerUser();
-            } else if (ch == 2) {
+            } 
+            else if (ch == 2) {
                 loginUser();
                 if (currentUser != nullptr) {
                     if (currentUser->data.isAdmin)
@@ -821,13 +1219,17 @@ public:
                     else
                         customerShop();
                 }
-            } else if (ch == 3) {
-                cout << "Thank you for shopping with us today!" << endl;
-                break;
-            } else {
-                cout << "Invalid choice." << endl;
+            } 
+            else if (ch == 3) {
+                cout << "\n========================================" << endl;
+                cout << "    Thank you for shopping with us!    " << endl;
+                cout << "          See you again soon!          " << endl;
+                cout << "========================================\n" << endl;
+            } 
+            else {
+                cout << "\n❌ Invalid choice! Please enter a number between 1 and 3.\n" << endl;
             }
-        }
+        } while (ch != 3);
     }
 };
 
